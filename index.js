@@ -18,6 +18,8 @@ server.use(express.json());
 server.use(helmet());
 
 // endpoints here
+//********************************** ZOOS ENDPOINTS ****************************/
+
 // **************** LIST ALL ZOOS **************//
 server.get('/api/zoos', async (req, res) => {
   try {
@@ -84,6 +86,85 @@ server.put('/api/zoos/:id', async (req, res) => {
 server.delete('/api/zoos/:id', async (req, res) => {
   try {
     const count = await db('zoos')
+      .where({ id: req.params.id })
+      .del();
+
+    if (count > 0) {
+      res.status(204).json({ message: 'Sucessfully Deleted.' });
+    } else {
+      res.status(404).json({
+        message: `Object with the specified id: ${req.params.id} not found.`,
+      });
+    }
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+
+//********************************** BEARS ENDPOINTS ****************************/
+// **************** LIST ALL BEARS **************//
+server.get('/api/bears', async (req, res) => {
+  try {
+    const bears = await db('bears');
+    res.status(200).json(bears);
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+
+// **************** LIST SPECIFIC BEAR **************//
+server.get('/api/bears/:id', async (req, res) => {
+  try {
+    const bears = await db('bears')
+      .where({ id: req.params.id })
+      .first();
+    res.status(200).json(bears);
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+
+// **************** CREATE BEAR **************//
+server.post('/api/bears', async (req, res) => {
+  try {
+    const [id] = await db('bears').insert(req.body);
+    const animal = await db('bears')
+      .where({ id })
+      .first();
+
+    res.status(201).json({ message: 'Sucessfully added.', animal });
+  } catch (error) {
+    const message = errors[error.errno] || 'Constraint Violation!';
+    res.status(500).json({ message });
+  }
+});
+
+// **************** UPDATE BEAR **************//
+server.put('/api/bears/:id', async (req, res) => {
+  try {
+    const count = await db('bears')
+      .where({ id: req.params.id })
+      .update(req.body);
+
+    if (count > 0) {
+      const animal = await db('bears')
+        .where({ id: req.params.id })
+        .first();
+      res.status(201).json({ message: 'Sucessfully Updated.', animal });
+    } else {
+      res.status(404).json({
+        message: `Object with the specified id: ${req.params.id} not found.`,
+      });
+    }
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+
+// **************** DELETE BEAR **************//
+server.delete('/api/bears/:id', async (req, res) => {
+  try {
+    const count = await db('bears')
       .where({ id: req.params.id })
       .del();
 
